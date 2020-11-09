@@ -20,15 +20,15 @@ func GetContentTypesHandler(res http.ResponseWriter, req *http.Request) {
 
 func GetContentTypeById(res http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(vars["typeID"])
 	if err != nil {
-		http.Error(res, "Invalid ID.", 400)
+		http.Error(res, "Invalid ID.", http.StatusBadRequest)
 		return
 	}
 
 	contentType, exists := data.GetContentTypeByID(id)
 	if !exists {
-		http.Error(res, "Content type was not found.", 404)
+		http.Error(res, "Content type was not found.", http.StatusNotFound)
 		return
 	}
 
@@ -42,20 +42,22 @@ func CreateContentTypeHandler(res http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&contentType)
 	if err != nil {
-		http.Error(res, "Invalid JSON.", 400)
+		http.Error(res, "Invalid JSON.", http.StatusBadRequest)
 		return
 	}
 
 	data.CreateContentType(&contentType)
 	res.WriteHeader(201)
-	res.Write([]byte("Created."))
+
+	encoder := json.NewEncoder(res)
+	encoder.Encode(contentType)
 }
 
 func UpdateContentTypeHandler(res http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(vars["typeID"])
 	if err != nil {
-		http.Error(res, "Invalid ID.", 400)
+		http.Error(res, "Invalid type ID.", http.StatusBadRequest)
 		return
 	}
 
@@ -63,28 +65,29 @@ func UpdateContentTypeHandler(res http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 	err = decoder.Decode(&contentType)
 	if err != nil {
-		http.Error(res, "Invalid JSON.", 400)
+		http.Error(res, "Invalid JSON.", http.StatusBadRequest)
 		return
 	}
 
 	updated := data.UpdateContentType(id, contentType)
 	if updated {
 		res.WriteHeader(200)
-		res.Write([]byte("Updated."))
 	} else {
 		res.WriteHeader(201)
-		res.Write([]byte("Created."))
 	}
+
+	encoder := json.NewEncoder(res)
+	encoder.Encode(contentType)
 }
 
 func DeleteContentTypeHandler(res http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.Atoi(vars["typeID"])
 	if err != nil {
-		http.Error(res, "Invalid ID.", 400)
+		http.Error(res, "Invalid ID.", http.StatusBadRequest)
 	}
 
 	data.DeleteContentType(id)
-	res.WriteHeader(204)
+	res.WriteHeader(200)
 	res.Write([]byte("Deleted."))
 }
